@@ -5,23 +5,28 @@ import HeaderComponent from './components/HeaderComponent';
 import FooterComponent from './components/FooterComponent';
 import AddClienteComponent from './components/AddClienteComponent';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Sidebar from './components/Sidebar';
+import Home from './Pages/Home';
+import RecepcionCV from './Pages/RecepcionCV';
 
 function App() {
   return (
-    <div>
-      <BrowserRouter>
-        <HeaderComponent />
-        <div className='container'>
+    <BrowserRouter>
+      <div style={{ display: "flex" }}>
+        <Sidebar />
+        <div style={{ marginLeft: "70px", padding: "20px" }}>
           <Routes>
-            <Route exact path="/" element={<ListClientesComponent />} />
-            <Route path="/clientes" element={<ListClientesComponent />} />
-            <Route path="/add-cliente" element={<AddClienteComponent />} />
-            <Route path="/edit-cliente/:id" element={<AddClienteComponent />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/recepcion-cv" element={<RecepcionCV />} />
+            <Route path="/reclutamiento" element={<Home />} />
+            <Route path="/asistencia" element={<Home />} />
+            <Route path="/incentivos" element={<Home />} />
+            <Route path="/vacaciones" element={<Home />} />
+            <Route path="/gestion" element={<Home />} />
           </Routes>
         </div>
-        <FooterComponent />
-      </BrowserRouter>
-    </div>
+      </div>
+    </BrowserRouter>
   );
 }
 
