@@ -10,7 +10,7 @@ public class Puesto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_puesto")
-    private Long id_puesto;
+    private Integer idPuesto;
 
     @Column(name = "nombre_puesto", nullable = false, length = 120)
     private String nombre_puesto;
@@ -62,12 +62,12 @@ public class Puesto {
     //   GETTERS Y SETTERS
     // ============================
 
-    public Long getId_puesto() {
-        return id_puesto;
+    public int getId_puesto() {
+        return idPuesto;
     }
 
-    public void setId_puesto(Long id_puesto) {
-        this.id_puesto = id_puesto;
+    public void setId_puesto(int idPuesto) {
+        this.idPuesto = idPuesto;
     }
 
     public String getNombre_puesto() {

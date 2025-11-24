@@ -1,4 +1,3 @@
-// RecepcionCV.js
 import React, { useState, useEffect } from "react";
 import "./RecepcionCV.css";
 import searchIcon from "../assets/search.png";
@@ -7,9 +6,12 @@ const RecepcionCV = () => {
   const [areas, setAreas] = useState([]);
   const [puestos, setPuestos] = useState([]);
   const [areaActiva, setAreaActiva] = useState("");
-  const [puestoActivo, setPuestoActivo] = useState("");
+  const [puestoActivo, setPuestoActivo] = useState(null);
 
-  // 👉 Cargar puestos desde el backend
+  const [postulantes, setPostulantes] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // 🟢 1) Cargar todos los puestos desde el backend
   useEffect(() => {
     const cargarPuestos = async () => {
       try {
@@ -18,51 +20,54 @@ const RecepcionCV = () => {
 
         setPuestos(data);
 
-        // Áreas únicas desde la BD
+        // Extraer áreas únicas
         const uniqueAreas = [...new Set(data.map((p) => p.area))];
         setAreas(uniqueAreas);
 
-        // Área por defecto
-        if (uniqueAreas.length > 0) {
-          setAreaActiva(uniqueAreas[0]);
-        }
-      } catch (error) {
-        console.error("Error cargando puestos:", error);
+        // Seleccionar la primera área automáticamente
+        if (uniqueAreas.length > 0) setAreaActiva(uniqueAreas[0]);
+      } catch (err) {
+        console.error("❌ Error cargando puestos:", err);
       }
     };
 
     cargarPuestos();
   }, []);
 
-  // ⭐ Cuando cambia el área (o llegan nuevos puestos),
-  //    seleccionamos automáticamente el PRIMER puesto de esa área
+  // 🟢 2) Cuando cambia el área → seleccionar el primer puesto
   useEffect(() => {
     if (!areaActiva) return;
-    const puestosArea = puestos.filter((p) => p.area === areaActiva);
-    if (puestosArea.length > 0) {
-      setPuestoActivo(puestosArea[0].nombre_puesto);
-    } else {
-      setPuestoActivo("");
-    }
+    const pArea = puestos.filter((p) => p.area === areaActiva);
+    if (pArea.length > 0) setPuestoActivo(pArea[0]); // Guardamos el objeto completo
   }, [areaActiva, puestos]);
 
-  // Puestos filtrados según área activa
-  const puestosDeAreaActiva = puestos.filter((p) => p.area === areaActiva);
+  // 🟢 3) Cuando cambia el puesto activo → traer postulantes desde backend
+  useEffect(() => {
+    if (!puestoActivo) return;
 
-  const candidatos = Array(18).fill({
-    id: 1,
-    nombre: "Marco Aurelio Huaman Denegri",
-    email: "marco.huaman@gmail.com",
-    telefono: "+51 985 628 455",
-    edad: 45,
-    sexo: "Masculino",
-    nivel: "Técnico",
-    experiencia: "2 años",
-  });
+    const cargarPostulantes = async () => {
+      setLoading(true);
+      try {
+        const resp = await fetch(
+          `http://localhost:8080/RRHH/postulantes-proceso/puesto/${puestoActivo.id_puesto}/revision-cv`
+        );
+        const data = await resp.json();
+        setPostulantes(data);
+      } catch (err) {
+        console.error("❌ Error cargando postulantes:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarPostulantes();
+  }, [puestoActivo]);
+
+  // Filtrar puestos visibles según área
+  const puestosDeAreaActiva = puestos.filter((p) => p.area === areaActiva);
 
   return (
     <div className="rcv-layout">
-      {/* HEADER FIJO */}
       <div className="rcv-header">
         <h2 className="fw-bold">Recepción de CVs</h2>
 
@@ -70,21 +75,15 @@ const RecepcionCV = () => {
           <span className="input-group-text bg-white">
             <img src={searchIcon} alt="buscar" style={{ width: 24, height: 24 }} />
           </span>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Buscar postulante o puesto"
-          />
+          <input type="text" className="form-control" placeholder="Buscar postulante o puesto" />
         </div>
 
-        {/* TABS DE ÁREAS (desde BD) */}
+        {/* Áreas dinámicas */}
         <ul className="nav nav-tabs mb-2">
           {areas.map((area) => (
             <li className="nav-item" key={area}>
               <button
-                className={
-                  "nav-link " + (areaActiva === area ? "active fw-bold" : "")
-                }
+                className={"nav-link " + (areaActiva === area ? "active fw-bold" : "")}
                 onClick={() => setAreaActiva(area)}
               >
                 {area}
@@ -93,18 +92,18 @@ const RecepcionCV = () => {
           ))}
         </ul>
 
-        {/* PILLS DE PUESTOS SEGÚN ÁREA ACTIVA (desde BD) */}
+        {/* Puestos dinámicos por área */}
         <ul className="nav nav-pills mb-3">
           {puestosDeAreaActiva.map((puesto) => (
             <li className="nav-item" key={puesto.id_puesto}>
               <button
                 className={
                   "nav-link " +
-                  (puestoActivo === puesto.nombre_puesto
+                  (puestoActivo?.id_puesto === puesto.id_puesto
                     ? "active fw-bold bg-success"
                     : "")
                 }
-                onClick={() => setPuestoActivo(puesto.nombre_puesto)}
+                onClick={() => setPuestoActivo(puesto)}
               >
                 {puesto.nombre_puesto}
               </button>
@@ -119,42 +118,42 @@ const RecepcionCV = () => {
         </div>
       </div>
 
-      {/* ZONA SCROLLABLE */}
+      {/* TABLA DE POSTULANTES */}
       <div className="rcv-table-scroll">
-        <table className="table table-striped table-bordered align-middle w-100">
-          <thead className="table-success text-center sticky-thead">
-            <tr>
-              <th>ID postulante</th>
-              <th>Nombres completos</th>
-              <th>Email</th>
-              <th>Teléfono</th>
-              <th>Edad</th>
-              <th>Sexo</th>
-              <th>Nivel de estudios</th>
-              <th>Experiencia</th>
-              <th>CV</th>
-            </tr>
-          </thead>
-          <tbody>
-            {candidatos.map((c, i) => (
-              <tr key={i}>
-                <td className="text-center">{c.id}</td>
-                <td>{c.nombre}</td>
-                <td>{c.email}</td>
-                <td>{c.telefono}</td>
-                <td>{c.edad}</td>
-                <td>{c.sexo}</td>
-                <td>{c.nivel}</td>
-                <td>{c.experiencia}</td>
-                <td className="text-center">
-                  <button className="btn btn-success btn-sm rounded-pill px-3">
-                    Ver CV
-                  </button>
-                </td>
+        {loading ? (
+          <div className="text-center p-5 fw-bold">Cargando postulantes...</div>
+        ) : postulantes.length === 0 ? (
+          <div className="text-center p-5 fw-bold text-danger">
+            No hay postulantes en revisión para este puesto
+          </div>
+        ) : (
+          <table className="table table-striped table-bordered align-middle w-100">
+            <thead className="table-success text-center sticky-thead">
+              <tr>
+                <th>ID postulante</th>
+                <th>Nombre completo</th>
+                <th>Email</th>
+                <th>Estado</th>
+                <th>Calificación</th>
+                <th>CV</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {postulantes.map((p, i) => (
+                <tr key={i}>
+                  <td className="text-center">{p.idPostulante}</td>
+                  <td>{`${p.nombres} ${p.apellidoPaterno} ${p.apellidoMaterno || ""}`}</td>
+                  <td>{p.email}</td>
+                  <td>{p.estado}</td>
+                  <td className="text-center">{p.calificacion ?? "-"}</td>
+                  <td className="text-center">
+                    <button className="btn btn-success btn-sm rounded-pill px-3">Ver CV</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
