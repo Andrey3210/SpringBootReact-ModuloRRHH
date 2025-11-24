@@ -1,29 +1,53 @@
 // RecepcionCV.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./RecepcionCV.css";
 import searchIcon from "../assets/search.png";
 
-
 const RecepcionCV = () => {
-  const [areaActiva, setAreaActiva] = useState("Inventario y almacén");
-  const [puestoActivo, setPuestoActivo] = useState("Jefe de logística");
+  const [areas, setAreas] = useState([]);
+  const [puestos, setPuestos] = useState([]);
+  const [areaActiva, setAreaActiva] = useState("");
+  const [puestoActivo, setPuestoActivo] = useState("");
 
-  const areas = [
-    "Inventario y almacén",
-    "Marketing",
-    "Cotización y Ventas",
-    "RRHH",
-    "Facturación",
-    "Compras",
-    "Atención al cliente",
-  ];
+  // 👉 Cargar puestos desde el backend
+  useEffect(() => {
+    const cargarPuestos = async () => {
+      try {
+        const resp = await fetch("http://localhost:8080/api/puestos");
+        const data = await resp.json();
 
-  const puestos = [
-    "Jefe de logística",
-    "Analista de control de inventarios",
-    "Encargado de almacén",
-    "Auxiliar de almacén",
-  ];
+        setPuestos(data);
+
+        // Áreas únicas desde la BD
+        const uniqueAreas = [...new Set(data.map((p) => p.area))];
+        setAreas(uniqueAreas);
+
+        // Área por defecto
+        if (uniqueAreas.length > 0) {
+          setAreaActiva(uniqueAreas[0]);
+        }
+      } catch (error) {
+        console.error("Error cargando puestos:", error);
+      }
+    };
+
+    cargarPuestos();
+  }, []);
+
+  // ⭐ Cuando cambia el área (o llegan nuevos puestos),
+  //    seleccionamos automáticamente el PRIMER puesto de esa área
+  useEffect(() => {
+    if (!areaActiva) return;
+    const puestosArea = puestos.filter((p) => p.area === areaActiva);
+    if (puestosArea.length > 0) {
+      setPuestoActivo(puestosArea[0].nombre_puesto);
+    } else {
+      setPuestoActivo("");
+    }
+  }, [areaActiva, puestos]);
+
+  // Puestos filtrados según área activa
+  const puestosDeAreaActiva = puestos.filter((p) => p.area === areaActiva);
 
   const candidatos = Array(18).fill({
     id: 1,
@@ -38,7 +62,6 @@ const RecepcionCV = () => {
 
   return (
     <div className="rcv-layout">
-
       {/* HEADER FIJO */}
       <div className="rcv-header">
         <h2 className="fw-bold">Recepción de CVs</h2>
@@ -48,18 +71,20 @@ const RecepcionCV = () => {
             <img src={searchIcon} alt="buscar" style={{ width: 24, height: 24 }} />
           </span>
           <input
-
             type="text"
             className="form-control"
             placeholder="Buscar postulante o puesto"
           />
         </div>
 
+        {/* TABS DE ÁREAS (desde BD) */}
         <ul className="nav nav-tabs mb-2">
           {areas.map((area) => (
             <li className="nav-item" key={area}>
               <button
-                className={"nav-link " + (areaActiva === area ? "active fw-bold" : "")}
+                className={
+                  "nav-link " + (areaActiva === area ? "active fw-bold" : "")
+                }
                 onClick={() => setAreaActiva(area)}
               >
                 {area}
@@ -68,17 +93,20 @@ const RecepcionCV = () => {
           ))}
         </ul>
 
+        {/* PILLS DE PUESTOS SEGÚN ÁREA ACTIVA (desde BD) */}
         <ul className="nav nav-pills mb-3">
-          {puestos.map((puesto) => (
-            <li className="nav-item" key={puesto}>
+          {puestosDeAreaActiva.map((puesto) => (
+            <li className="nav-item" key={puesto.id_puesto}>
               <button
                 className={
                   "nav-link " +
-                  (puestoActivo === puesto ? "active fw-bold bg-success" : "")
+                  (puestoActivo === puesto.nombre_puesto
+                    ? "active fw-bold bg-success"
+                    : "")
                 }
-                onClick={() => setPuestoActivo(puesto)}
+                onClick={() => setPuestoActivo(puesto.nombre_puesto)}
               >
-                {puesto}
+                {puesto.nombre_puesto}
               </button>
             </li>
           ))}
@@ -128,7 +156,6 @@ const RecepcionCV = () => {
           </tbody>
         </table>
       </div>
-
     </div>
   );
 };
