@@ -1,6 +1,6 @@
-package com.gestion.clientes.Repository;
+package com.gestion.RRHH.Repository;
 
-import com.gestion.clientes.model.Puesto;
+import com.gestion.RRHH.model.Puesto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

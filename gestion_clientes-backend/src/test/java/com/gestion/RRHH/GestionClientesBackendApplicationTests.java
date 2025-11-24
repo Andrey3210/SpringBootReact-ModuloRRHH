@@ -1,4 +1,4 @@
-package com.gestion.clientes;
+package com.gestion.RRHH;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -13,7 +13,7 @@ const RecepcionCV = () => {
   useEffect(() => {
     const cargarPuestos = async () => {
       try {
-        const resp = await fetch("http://localhost:8080/api/puestos");
+        const resp = await fetch("http://localhost:8080/RRHH/puestos");
         const data = await resp.json();
 
         setPuestos(data);

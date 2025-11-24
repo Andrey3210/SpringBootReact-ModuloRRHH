@@ -1,8 +1,8 @@
-package com.gestion.clientes.controller;
+package com.gestion.RRHH.controller;
 
-import com.gestion.clientes.Repository.PuestoRepository;
-import com.gestion.clientes.exception.ResourceNotFoundException;
-import com.gestion.clientes.model.Puesto;
+import com.gestion.RRHH.Repository.PuestoRepository;
+import com.gestion.RRHH.exception.ResourceNotFoundException;
+import com.gestion.RRHH.model.Puesto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

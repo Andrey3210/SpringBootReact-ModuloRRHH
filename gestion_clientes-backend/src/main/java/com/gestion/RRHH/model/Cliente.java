@@ -1,4 +1,4 @@
-package com.gestion.clientes.model;
+package com.gestion.RRHH.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

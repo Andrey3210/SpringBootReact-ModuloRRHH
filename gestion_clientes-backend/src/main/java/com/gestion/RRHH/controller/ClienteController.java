@@ -1,8 +1,8 @@
-package com.gestion.clientes.controller;
+package com.gestion.RRHH.controller;
 
-import com.gestion.clientes.Repository.ClienteRepository;
-import com.gestion.clientes.exception.ResourceNotFoundException;
-import com.gestion.clientes.model.Cliente;
+import com.gestion.RRHH.Repository.ClienteRepository;
+import com.gestion.RRHH.exception.ResourceNotFoundException;
+import com.gestion.RRHH.model.Cliente;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
