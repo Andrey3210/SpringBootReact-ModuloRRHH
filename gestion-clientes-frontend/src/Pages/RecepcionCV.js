@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // ⬅️ IMPORTANTE
 import "./RecepcionCV.css";
 import searchIcon from "../assets/search.png";
+import CV from "../assets/curriculum.png";
 
 const RecepcionCV = () => {
   const [areas, setAreas] = useState([]);
   const [puestos, setPuestos] = useState([]);
   const [areaActiva, setAreaActiva] = useState("");
   const [puestoActivo, setPuestoActivo] = useState(null);
-
   const [postulantes, setPostulantes] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🟢 1) Cargar todos los puestos desde el backend
+  const navigate = useNavigate(); // ⬅️ PARA IR A LA VISTA DEL CV
+
+  // 🟢 1) Cargar puestos
   useEffect(() => {
     const cargarPuestos = async () => {
       try {
@@ -19,29 +22,24 @@ const RecepcionCV = () => {
         const data = await resp.json();
 
         setPuestos(data);
-
-        // Extraer áreas únicas
         const uniqueAreas = [...new Set(data.map((p) => p.area))];
         setAreas(uniqueAreas);
-
-        // Seleccionar la primera área automáticamente
         if (uniqueAreas.length > 0) setAreaActiva(uniqueAreas[0]);
       } catch (err) {
         console.error("❌ Error cargando puestos:", err);
       }
     };
-
     cargarPuestos();
   }, []);
 
-  // 🟢 2) Cuando cambia el área → seleccionar el primer puesto
+  // 🟢 2) Cambiar puesto según área
   useEffect(() => {
     if (!areaActiva) return;
     const pArea = puestos.filter((p) => p.area === areaActiva);
-    if (pArea.length > 0) setPuestoActivo(pArea[0]); // Guardamos el objeto completo
+    if (pArea.length > 0) setPuestoActivo(pArea[0]);
   }, [areaActiva, puestos]);
 
-  // 🟢 3) Cuando cambia el puesto activo → traer postulantes desde backend
+  // 🟢 3) Cargar postulantes de ese puesto
   useEffect(() => {
     if (!puestoActivo) return;
 
@@ -63,7 +61,6 @@ const RecepcionCV = () => {
     cargarPostulantes();
   }, [puestoActivo]);
 
-  // Filtrar puestos visibles según área
   const puestosDeAreaActiva = puestos.filter((p) => p.area === areaActiva);
 
   return (
@@ -78,7 +75,7 @@ const RecepcionCV = () => {
           <input type="text" className="form-control" placeholder="Buscar postulante o puesto" />
         </div>
 
-        {/* Áreas dinámicas */}
+        {/* Áreas */}
         <ul className="nav nav-tabs mb-2">
           {areas.map((area) => (
             <li className="nav-item" key={area}>
@@ -92,16 +89,14 @@ const RecepcionCV = () => {
           ))}
         </ul>
 
-        {/* Puestos dinámicos por área */}
+        {/* Puestos */}
         <ul className="nav nav-pills mb-3">
           {puestosDeAreaActiva.map((puesto) => (
             <li className="nav-item" key={puesto.id_puesto}>
               <button
                 className={
                   "nav-link " +
-                  (puestoActivo?.id_puesto === puesto.id_puesto
-                    ? "active fw-bold bg-success"
-                    : "")
+                  (puestoActivo?.id_puesto === puesto.id_puesto ? "active fw-bold bg-success" : "")
                 }
                 onClick={() => setPuestoActivo(puesto)}
               >
@@ -110,15 +105,9 @@ const RecepcionCV = () => {
             </li>
           ))}
         </ul>
-
-        <div className="d-flex justify-content-end mb-1">
-          <button className="btn btn-light border d-flex align-items-center">
-            <i className="bi bi-funnel me-2"></i> Todos
-          </button>
-        </div>
       </div>
 
-      {/* TABLA DE POSTULANTES */}
+      {/* TABLA */}
       <div className="rcv-table-scroll">
         {loading ? (
           <div className="text-center p-5 fw-bold">Cargando postulantes...</div>
@@ -132,9 +121,10 @@ const RecepcionCV = () => {
               <tr>
                 <th>ID postulante</th>
                 <th>Nombre completo</th>
+                <th>Teléfono</th>
                 <th>Email</th>
-                <th>Estado</th>
-                <th>Calificación</th>
+                <th>Edad</th>
+                <th>Género</th>
                 <th>CV</th>
               </tr>
             </thead>
@@ -143,11 +133,21 @@ const RecepcionCV = () => {
                 <tr key={i}>
                   <td className="text-center">{p.idPostulante}</td>
                   <td>{`${p.nombres} ${p.apellidoPaterno} ${p.apellidoMaterno || ""}`}</td>
+                  <td>{p.telefono}</td>
                   <td>{p.email}</td>
-                  <td>{p.estado}</td>
-                  <td className="text-center">{p.calificacion ?? "-"}</td>
+                  <td className="text-center">{p.edad ?? "-"}</td>
+                  <td>{p.genero}</td>
                   <td className="text-center">
-                    <button className="btn btn-success btn-sm rounded-pill px-3">Ver CV</button>
+                    <button
+                      className="btn btn-success btn-sm rounded-pill px-3"
+                      onClick={() =>
+                        navigate(`/rrhh/postulantes/${p.idPostulante}/cv`, {
+                          state: { postulante: p, nombrePuesto: puestoActivo?.nombre_puesto },
+                        })
+                      }
+                    >
+                      <img src={CV} alt="CV" style={{ width: 24, height: 24 }} />
+                    </button>
                   </td>
                 </tr>
               ))}

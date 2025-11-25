@@ -8,6 +8,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Home from './Pages/Home';
 import RecepcionCV from './Pages/RecepcionCV';
+import DetalleCV from "./Pages/DetalleCV";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/incentivos" element={<Home />} />
             <Route path="/vacaciones" element={<Home />} />
             <Route path="/gestion" element={<Home />} />
+            <Route path="/rrhh/postulantes/:idPostulante/cv" element={<DetalleCV />}/>
           </Routes>
         </div>
       </div>
